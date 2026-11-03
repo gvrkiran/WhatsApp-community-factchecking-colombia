@@ -1,0 +1,41 @@
+item,label,modality,genre,leaning,topic_paper
+LC1,1,image,news,none,National News
+LC2,0,image,warning,none,Fear mongering
+LC3,0,image,conspiracy,none,Conspiracy
+LC4,0,video,health,none,Health
+LC5,1,text,informative,none,Nature
+LC6,1,image,news,none,National News
+LC7,1,video,news,none,Regional News
+LC8,0,image,political,left,Political (left-leaning)
+LC9,1,text+image,news,none,Regional/National News
+LC10,0,text,warning,none,Fear mongering
+LC11,1,image,informative,none,Informative
+LC12,0,image,health,none,Health
+LC13,0,image,warning,none,Fear mongering
+LC14,0,video,warning,none,Regional/National News
+LC15,1,text,health,none,Health
+LC16,1,video,news,none,National News
+LC17,0,image,political,left,Political (left-leaning)
+LC18,0,image,warning,none,Informative
+LC19,1,video,health,none,Health
+LC20,1,text+image,informative,none,Nature
+LC21,1,image,informative,none,National News (Information)
+LC22,0,video,warning,none,Fear mongering
+LC23,1,video,news,none,National News
+LC24,0,video,political,left,Political (left-leaning)
+LC25,1,image,informative,none,Nature
+LC26,0,image,political,right,Political (right-leaning)
+LC27,0,text,health,none,Health
+LC28,1,video,news,none,Regional News
+LC29,0,video,political,none,Political (no-leaning)
+LC30,1,image,news,right,Political News (right-leaning)
+LC31,0,image,warning,none,Fear mongering
+LC32,1,video,news,none,National News
+LC33,0,image,political,none,Political / National News
+LC34,1,video,news,none,National News
+LC35,0,image,political,left,Political (left-leaning)
+LC36,1,image,news,none,National News
+LC37,0,text,warning,none,Fear mongering
+LC38,1,video,news,none,Regional News
+LC39,0,video,political,left,Political (left-leaning)
+LC40,1,video,informative,none,Informative

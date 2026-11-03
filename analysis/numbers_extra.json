@@ -1,0 +1,335 @@
+{
+ "threshold": {
+  "auc": 0.891,
+  "auc_ci": [
+   0.778,
+   0.972
+  ],
+  "true_share_min": 0.5,
+  "true_share_median": 0.84,
+  "false_share_median": 0.42,
+  "false_share_max": 0.88,
+  "rows": [
+   {
+    "t": 0.4,
+    "false_flagged": 9,
+    "true_flagged": 0
+   },
+   {
+    "t": 0.5,
+    "false_flagged": 12,
+    "true_flagged": 0
+   },
+   {
+    "t": 0.6,
+    "false_flagged": 15,
+    "true_flagged": 5
+   },
+   {
+    "t": 0.7,
+    "false_flagged": 18,
+    "true_flagged": 7
+   }
+  ]
+ },
+ "cross_partisan": {
+  "raters_per_side_median": {
+   "Left": 7.0,
+   "Right": 6.5
+  },
+  "raters_per_side_min": 3,
+  "false_items": {
+   "rule": {
+    "true": 2,
+    "false": 7,
+    "none": 11
+   },
+   "majority": {
+    "true": 7,
+    "false": 12,
+    "tie": 1
+   }
+  },
+  "true_items": {
+   "rule": {
+    "true": 14,
+    "none": 6
+   },
+   "majority": {
+    "true": 18,
+    "tie": 2
+   }
+  },
+  "false_item_table": [
+   {
+    "item": "LC29",
+    "modality": "video",
+    "genre": "political",
+    "leaning": "none",
+    "frac_true": 0.88,
+    "mean_Left": 0.82,
+    "size_Left": 11,
+    "mean_Right": 1.0,
+    "size_Right": 5,
+    "majority": "true",
+    "bridge": "true"
+   },
+   {
+    "item": "LC14",
+    "modality": "video",
+    "genre": "warning",
+    "leaning": "none",
+    "frac_true": 0.76,
+    "mean_Left": 0.86,
+    "size_Left": 7,
+    "mean_Right": 0.75,
+    "size_Right": 8,
+    "majority": "true",
+    "bridge": "true"
+   },
+   {
+    "item": "LC31",
+    "modality": "image",
+    "genre": "warning",
+    "leaning": "none",
+    "frac_true": 0.62,
+    "mean_Left": 0.4,
+    "size_Left": 5,
+    "mean_Right": 0.71,
+    "size_Right": 7,
+    "majority": "true",
+    "bridge": "none"
+   },
+   {
+    "item": "LC18",
+    "modality": "image",
+    "genre": "warning",
+    "leaning": "none",
+    "frac_true": 0.61,
+    "mean_Left": 0.44,
+    "size_Left": 9,
+    "mean_Right": 0.71,
+    "size_Right": 7,
+    "majority": "true",
+    "bridge": "none"
+   },
+   {
+    "item": "LC37",
+    "modality": "text",
+    "genre": "warning",
+    "leaning": "none",
+    "frac_true": 0.61,
+    "mean_Left": 0.6,
+    "size_Left": 5,
+    "mean_Right": 0.44,
+    "size_Right": 9,
+    "majority": "true",
+    "bridge": "none"
+   },
+   {
+    "item": "LC24",
+    "modality": "video",
+    "genre": "political",
+    "leaning": "left",
+    "frac_true": 0.59,
+    "mean_Left": 0.73,
+    "size_Left": 11,
+    "mean_Right": 0.2,
+    "size_Right": 5,
+    "majority": "true",
+    "bridge": "none"
+   },
+   {
+    "item": "LC39",
+    "modality": "video",
+    "genre": "political",
+    "leaning": "left",
+    "frac_true": 0.53,
+    "mean_Left": 0.8,
+    "size_Left": 5,
+    "mean_Right": 0.22,
+    "size_Right": 9,
+    "majority": "true",
+    "bridge": "none"
+   },
+   {
+    "item": "LC22",
+    "modality": "video",
+    "genre": "warning",
+    "leaning": "none",
+    "frac_true": 0.5,
+    "mean_Left": 0.4,
+    "size_Left": 10,
+    "mean_Right": 0.6,
+    "size_Right": 5,
+    "majority": "tie",
+    "bridge": "none"
+   },
+   {
+    "item": "LC33",
+    "modality": "image",
+    "genre": "political",
+    "leaning": "none",
+    "frac_true": 0.47,
+    "mean_Left": 0.6,
+    "size_Left": 5,
+    "mean_Right": 0.25,
+    "size_Right": 8,
+    "majority": "false",
+    "bridge": "none"
+   },
+   {
+    "item": "LC10",
+    "modality": "text",
+    "genre": "warning",
+    "leaning": "none",
+    "frac_true": 0.42,
+    "mean_Left": 0.5,
+    "size_Left": 8,
+    "mean_Right": 0.17,
+    "size_Right": 6,
+    "majority": "false",
+    "bridge": "none"
+   },
+   {
+    "item": "LC13",
+    "modality": "image",
+    "genre": "warning",
+    "leaning": "none",
+    "frac_true": 0.41,
+    "mean_Left": 0.29,
+    "size_Left": 7,
+    "mean_Right": 0.62,
+    "size_Right": 8,
+    "majority": "false",
+    "bridge": "none"
+   },
+   {
+    "item": "LC27",
+    "modality": "text",
+    "genre": "health",
+    "leaning": "none",
+    "frac_true": 0.33,
+    "mean_Left": 0.17,
+    "size_Left": 12,
+    "mean_Right": 0.6,
+    "size_Right": 5,
+    "majority": "false",
+    "bridge": "none"
+   },
+   {
+    "item": "LC17",
+    "modality": "image",
+    "genre": "political",
+    "leaning": "left",
+    "frac_true": 0.29,
+    "mean_Left": 0.29,
+    "size_Left": 7,
+    "mean_Right": 0.25,
+    "size_Right": 8,
+    "majority": "false",
+    "bridge": "false"
+   },
+   {
+    "item": "LC35",
+    "modality": "image",
+    "genre": "political",
+    "leaning": "left",
+    "frac_true": 0.29,
+    "mean_Left": 0.33,
+    "size_Left": 3,
+    "mean_Right": 0.14,
+    "size_Right": 7,
+    "majority": "false",
+    "bridge": "false"
+   },
+   {
+    "item": "LC4",
+    "modality": "video",
+    "genre": "health",
+    "leaning": "none",
+    "frac_true": 0.29,
+    "mean_Left": 0.33,
+    "size_Left": 6,
+    "mean_Right": 0.0,
+    "size_Right": 4,
+    "majority": "false",
+    "bridge": "false"
+   },
+   {
+    "item": "LC8",
+    "modality": "image",
+    "genre": "political",
+    "leaning": "left",
+    "frac_true": 0.26,
+    "mean_Left": 0.38,
+    "size_Left": 8,
+    "mean_Right": 0.17,
+    "size_Right": 6,
+    "majority": "false",
+    "bridge": "false"
+   },
+   {
+    "item": "LC12",
+    "modality": "image",
+    "genre": "health",
+    "leaning": "none",
+    "frac_true": 0.25,
+    "mean_Left": 0.0,
+    "size_Left": 7,
+    "mean_Right": 0.5,
+    "size_Right": 8,
+    "majority": "false",
+    "bridge": "none"
+   },
+   {
+    "item": "LC26",
+    "modality": "image",
+    "genre": "political",
+    "leaning": "right",
+    "frac_true": 0.22,
+    "mean_Left": 0.17,
+    "size_Left": 12,
+    "mean_Right": 0.4,
+    "size_Right": 5,
+    "majority": "false",
+    "bridge": "false"
+   },
+   {
+    "item": "LC2",
+    "modality": "image",
+    "genre": "warning",
+    "leaning": "none",
+    "frac_true": 0.2,
+    "mean_Left": 0.29,
+    "size_Left": 7,
+    "mean_Right": 0.0,
+    "size_Right": 4,
+    "majority": "false",
+    "bridge": "false"
+   },
+   {
+    "item": "LC3",
+    "modality": "image",
+    "genre": "conspiracy",
+    "leaning": "none",
+    "frac_true": 0.14,
+    "mean_Left": 0.0,
+    "size_Left": 7,
+    "mean_Right": 0.33,
+    "size_Right": 3,
+    "majority": "false",
+    "bridge": "false"
+   }
+  ]
+ },
+ "feedback_next_item_fe": {
+  "pairs": 592,
+  "or": 1.63,
+  "ci": [
+   1.02,
+   2.58
+  ],
+  "p": 0.039
+ }
+}

@@ -1,0 +1,105 @@
+import pandas as pd, numpy as np, warnings
+from scipy import stats
+import statsmodels.api as sm, statsmodels.formula.api as smf
+warnings.filterwarnings('ignore')
+L=pd.read_csv('long.csv', dtype={'ID':str}).drop(columns=['modality','topic'])
+I=pd.read_csv('items.csv')
+L=L.merge(I.drop(columns=['label']), on='item')
+L['pol']=L.pol_pref_2.map({1:'Left',2:'Center',3:'Right'})
+L['is_video']=(L.modality=='video').astype(int)
+print("="*70); print("1. SIGNAL DETECTION (participant level)")
+def sdt(g):
+    nT=(g.label==1).sum(); nF=(g.label==0).sum()
+    hT=g[g.label==1].rated_true.sum(); fF=g[g.label==0].rated_true.sum()
+    h=(hT+0.5)/(nT+1); f=(fF+0.5)/(nF+1)   # loglinear correction
+    return pd.Series(dict(hit=hT/nT, fa=fF/nF, dprime=stats.norm.ppf(h)-stats.norm.ppf(f),
+        crit=-0.5*(stats.norm.ppf(h)+stats.norm.ppf(f)), n=len(g), acc=g.correct.mean(), true_rate=g.rated_true.mean(),
+        acc_true=g[g.label==1].correct.mean(), acc_false=g[g.label==0].correct.mean()))
+P=L.groupby('ID').apply(sdt).reset_index()
+print(P[['hit','fa','dprime','crit','acc','true_rate']].describe().round(3).loc[['mean','std','min','max']])
+t=stats.ttest_rel(P.acc_true,P.acc_false); w=stats.wilcoxon(P.acc_true,P.acc_false)
+dz=(P.acc_true-P.acc_false).mean()/(P.acc_true-P.acc_false).std()
+print(f"paired t (acc_true vs acc_false, N={len(P)}): t={t.statistic:.2f} p={t.pvalue:.2e}; Wilcoxon p={w.pvalue:.2e}; Cohen dz={dz:.2f}")
+print(f"participants with acc_true>acc_false: {(P.acc_true>P.acc_false).sum()}/{len(P)}")
+tc=stats.ttest_1samp(P.crit,0); print(f"criterion c mean={P.crit.mean():.3f} (95%CI {P.crit.mean()-1.96*P.crit.sem():.3f},{P.crit.mean()+1.96*P.crit.sem():.3f}) t={tc.statistic:.2f} p={tc.pvalue:.2e}; c<0 for {(P.crit<0).sum()}/{len(P)} (liberal/truth bias)")
+td=stats.ttest_1samp(P.dprime,0); print(f"d' mean={P.dprime.mean():.3f} sd={P.dprime.std():.3f} t={td.statistic:.2f} p={td.pvalue:.2e}; d'<=0 for {(P.dprime<=0).sum()}")
+print(f"corr(d', c) r={stats.pearsonr(P.dprime,P.crit)[0]:.2f}; corr(acc, c) r={stats.pearsonr(P.acc,P.crit)[0]:.2f}; corr(acc,d') r={stats.pearsonr(P.acc,P.dprime)[0]:.2f}")
+print("\n--- Item level (40 items): mean accuracy true vs false items")
+It=L.groupby('item').agg(acc=('correct','mean'),label=('label','first'),n=('correct','size'),frac_true=('rated_true','mean'),genre=('genre','first'),modality=('modality','first'),leaning=('leaning','first')).reset_index()
+tt=stats.ttest_ind(It[It.label==1].acc,It[It.label==0].acc,equal_var=False); mw=stats.mannwhitneyu(It[It.label==1].acc,It[It.label==0].acc)
+print(f"true items mean={It[It.label==1].acc.mean():.3f} sd={It[It.label==1].acc.std():.3f}; false mean={It[It.label==0].acc.mean():.3f} sd={It[It.label==0].acc.std():.3f}; Welch t={tt.statistic:.2f} p={tt.pvalue:.4f}; MWU p={mw.pvalue:.4f}")
+print("\n--- GEE (ratings, clustered by participant, exchangeable)")
+def gee(f, data, fam=sm.families.Binomial()):
+    m=smf.gee(f, groups='ID', data=data, family=fam, cov_struct=sm.cov_struct.Exchangeable()).fit()
+    return m
+m=gee("correct ~ label", L); print(m.summary().tables[1])
+m=gee("rated_true ~ label", L); print("rated_true ~ label:\n", m.summary().tables[1]); 
+b=m.params; print(f"  P(rate true | false item)={1/(1+np.exp(-b['Intercept'])):.3f}; P(rate true | true item)={1/(1+np.exp(-(b['Intercept']+b['label']))):.3f}")
+print("\n"+"="*70); print("2. ITEM CHARACTERISTICS")
+print(It.groupby(['label','modality']).acc.agg(['mean','count']).round(3))
+print(It.groupby(['label','genre']).acc.agg(['mean','count']).round(3))
+f=It[It.label==0]; tv=stats.ttest_ind(f[f.modality=='video'].acc, f[f.modality!='video'].acc, equal_var=False)
+print(f"FALSE items: video mean={f[f.modality=='video'].acc.mean():.3f} (n={ (f.modality=='video').sum()}) vs non-video={f[f.modality!='video'].acc.mean():.3f}; Welch t={tv.statistic:.2f} p={tv.pvalue:.3f}")
+tr=It[It.label==1]; tv2=stats.ttest_ind(tr[tr.modality=='video'].acc, tr[tr.modality!='video'].acc, equal_var=False)
+print(f"TRUE items: video mean={tr[tr.modality=='video'].acc.mean():.3f} vs non-video={tr[tr.modality!='video'].acc.mean():.3f}; p={tv2.pvalue:.3f}")
+m=gee("correct ~ label*is_video", L); print(m.summary().tables[1])
+print("ANOVA item acc ~ modality (3 groups, all items): F=%.2f p=%.3f" % stats.f_oneway(*[g.acc.values for _,g in It.groupby(It.modality.str.replace('text+image','text'))]))
+print("ANOVA item acc ~ topic_paper political vs other (all items):", stats.ttest_ind(It[It.genre=='political'].acc, It[It.genre!='political'].acc, equal_var=False))
+print("Kruskal item acc ~ genre (false items):", stats.kruskal(*[g.acc.values for _,g in f.groupby('genre')]))
+print("\nMajority-wrong items (full crowd):"); print(It[(It.frac_true>0.5)!=(It.label==1)][['item','label','modality','genre','frac_true','n']].to_string(index=False))
+print("ties:", It[It.frac_true==0.5][['item','label','modality','genre']].to_string(index=False))
+print(f"Majority correct on true items: {((It.label==1)&(It.frac_true>0.5)).sum()}/20 (+ties {((It.label==1)&(It.frac_true==0.5)).sum()}); on false items: {((It.label==0)&(It.frac_true<0.5)).sum()}/20")
+print("\n"+"="*70); print("3. POSITION / WEEK CONFOUND")
+ct=pd.crosstab(L.item, L.position); print("each item appears at how many distinct positions:", (ct>0).sum(axis=1).value_counts().to_dict(), "-> position is fully determined by item")
+print("week1 acc %.3f (items LC1-20), week2 acc %.3f (LC21-40)" % (L[L.week==1].correct.mean(), L[L.week==2].correct.mean()))
+print("item-level: week1 items mean acc %.3f vs week2 items %.3f; Welch p=%.3f" % (It[It.item.isin([f'LC{i}' for i in range(1,21)])].acc.mean(), It[~It.item.isin([f'LC{i}' for i in range(1,21)])].acc.mean(), stats.ttest_ind(It[It.item.isin([f'LC{i}' for i in range(1,21)])].acc, It[~It.item.isin([f'LC{i}' for i in range(1,21)])].acc, equal_var=False).pvalue))
+# within participant: week1 vs week2 accuracy paired
+W=L.pivot_table(index='ID', columns='week', values='correct', aggfunc='mean').dropna()
+print("paired week1 vs week2 (N=%d): %.3f vs %.3f, t p=%.3f" % (len(W), W[1].mean(), W[2].mean(), stats.ttest_rel(W[1],W[2]).pvalue))
+print("\n"+"="*70); print("4. STABILITY OF INDIVIDUAL ACCURACY (is 'expertise' a trait?)")
+W2=L.pivot_table(index='ID', columns='week', values='correct', aggfunc=['mean','size']).dropna()
+W2.columns=['acc_w1','acc_w2','n_w1','n_w2']; W2=W2[(W2.n_w1>=5)&(W2.n_w2>=5)]
+print(f"N={len(W2)}; Pearson r(week1 acc, week2 acc)={stats.pearsonr(W2.acc_w1,W2.acc_w2)[0]:.3f} p={stats.pearsonr(W2.acc_w1,W2.acc_w2)[1]:.3f}; Spearman rho={stats.spearmanr(W2.acc_w1,W2.acc_w2)[0]:.3f} p={stats.spearmanr(W2.acc_w1,W2.acc_w2)[1]:.3f}")
+# odd/even split half
+L['odd']=L.position%2
+SH=L.pivot_table(index='ID', columns='odd', values='correct', aggfunc='mean').dropna()
+r=stats.pearsonr(SH[0],SH[1])[0]; print(f"odd/even split-half r={r:.3f} (Spearman-Brown={2*r/(1+r):.3f})")
+# top-quartile persistence
+q=W2.acc_w1.quantile(0.75); top=W2[W2.acc_w1>=q]; print(f"top-quartile in week1 (n={len(top)}): week2 acc={top.acc_w2.mean():.3f} vs others {W2[W2.acc_w1<q].acc_w2.mean():.3f}")
+print("\n"+"="*70); print("5. DEMOGRAPHICS (participant-level OLS and rating-level GEE)")
+D=L.groupby('ID').agg(acc=('correct','mean'),age=('age','first'),gender=('gender','first'),edu=('edu_years','first'),polnum=('political_pref','first'),crt=('crt','first'),pol=('pol','first'),internet=('internet_use','first'),relig=('religious','first')).dropna(subset=['age','gender','edu','polnum'])
+ols=smf.ols("acc ~ age + gender + edu + polnum + crt", data=D).fit(); print(ols.summary().tables[1]); print(f"N={int(ols.nobs)} R2={ols.rsquared:.3f} F p={ols.f_pvalue:.3f}")
+print("accuracy by political group:", L.groupby('pol').correct.agg(['mean','size']).round(3).to_dict())
+print("participant acc by pol:", D.groupby('pol').acc.agg(['mean','std','count']).round(3))
+print("ANOVA acc ~ pol:", stats.f_oneway(*[g.acc.values for _,g in D.groupby('pol')]))
+print("corr(CRT, acc): r=%.3f p=%.3f" % stats.pearsonr(D.crt, D.acc)); print("corr(age, acc): r=%.3f p=%.3f" % stats.pearsonr(D.age, D.acc)); print("corr(edu, acc): r=%.3f p=%.3f" % stats.pearsonr(D.edu, D.acc))
+print("\n"+"="*70); print("6. PARTISAN CONGRUENCE (leaning-coded items)")
+lean=L[(L.leaning!='none')&(L.pol.isin(['Left','Right']))].copy()
+lean['congruent']=((lean.leaning=='left')&(lean.pol=='Left'))|((lean.leaning=='right')&(lean.pol=='Right'))
+print(lean.groupby(['item','label','leaning','pol']).rated_true.agg(['mean','size']).round(2))
+fk=lean[lean.label==0]
+print("FAKE leaning items: P(rated true | congruent)=%.3f (n=%d) vs incongruent=%.3f (n=%d)" % (fk[fk.congruent].rated_true.mean(), fk.congruent.sum(), fk[~fk.congruent].rated_true.mean(), (~fk.congruent).sum()))
+m=gee("rated_true ~ congruent", fk.assign(congruent=fk.congruent.astype(int))); print(m.summary().tables[1])
+print("Left-leaning fakes only: Left participants rate true %.3f vs Right participants %.3f" % (fk[(fk.leaning=='left')&(fk.pol=='Left')].rated_true.mean(), fk[(fk.leaning=='left')&(fk.pol=='Right')].rated_true.mean()))
+# political items overall by participant leaning
+pol_items=L[L.genre=='political']; print("political items acc by participant pol:", pol_items.groupby('pol').correct.agg(['mean','size']).round(3).to_dict())
+print("\n"+"="*70); print("7. FEEDBACK LOOP: does disagreeing with the (eventual) majority on item k change behavior on item k+1?")
+maj=It.set_index('item').frac_true; L['maj_true']=(L.item.map(maj)>0.5).astype(int); L['tie']=(L.item.map(maj)==0.5).astype(int)
+L['minority']=((L.rated_true!=L.maj_true)&(L.tie==0)).astype(int)
+L=L.sort_values(['ID','position'])
+L['next_pos']=L.groupby('ID').position.shift(-1); L['next_rt']=L.groupby('ID').rated_true.shift(-1); L['next_correct']=L.groupby('ID').correct.shift(-1); L['next_label']=L.groupby('ID').label.shift(-1); L['next_item']=L.groupby('ID').item.shift(-1)
+N=L[(L.next_pos==L.position+1)].copy()   # consecutive ratings only
+print(f"consecutive pairs: {len(N)}; minority on k: {N.minority.sum()} ({N.minority.mean():.2%})")
+print("P(rate TRUE on k+1) by own response on k and feedback status:")
+print(N.groupby(['rated_true','minority']).agg(p_true_next=('next_rt','mean'),acc_next=('next_correct','mean'),n=('next_rt','size')).round(3))
+N['switch']=(N.next_rt!=N.rated_true).astype(int)
+print("P(switch response category on k+1):", N.groupby(['rated_true','minority']).switch.mean().round(3).to_dict())
+m=gee("next_rt ~ rated_true*minority + next_label", N); print(m.summary().tables[1])
+m=gee("next_correct ~ minority + next_label", N); print("next_correct ~ minority:\n", m.summary().tables[1])
+# by performer level
+N['perf']=pd.cut(N.ID.map(P.set_index('ID').acc),[0,0.55,0.7,1],labels=['low','mid','high'])
+print(N.groupby(['perf','minority']).agg(switch=('switch','mean'),acc_next=('next_correct','mean'),n=('switch','size')).round(3))
+# drift toward community: does true_rate in week 2 move toward the community's overall true rate?
+print("\nshare of items where community majority said TRUE: %d/40; mean feedback shown (frac_true) %.3f" % ((It.frac_true>0.5).sum(), It.frac_true.mean()))
+print("participant true_rate week1 vs week2:", L.groupby(['week']).rated_true.mean().round(3).to_dict(), "(items differ by week; true base rate 50% each week)")
+P.to_csv('participant_sdt.csv', index=False); It.to_csv('item_stats.csv', index=False); L.to_csv('long_enriched.csv', index=False)
